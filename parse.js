@@ -133,6 +133,7 @@ fetch('workouts.csv')
   .then(text => {
     const lines = text.split('\n').map(splitCSVLine);
     window.WORKOUTS = parseCSV(text);
+    window.WORKOUTS.sort((a, b) => a.date - b.date);
     window.EXERCISES = [...new Set(WORKOUTS.flatMap(w => Object.keys(w.exercises)))].sort();
     window.EXERCISE_GROUPS = parseCategories(lines);
     document.dispatchEvent(new Event('data-ready'));
