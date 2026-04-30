@@ -314,7 +314,7 @@ function renderInsights(){
     {
       title:'Powerlifting Total (Est. 1RM)',
       value:`${totalE1RM} lbs`,
-      body:`Squat ${Math.round(e1rm('Squat'))} + Bench ${Math.round(e1rm('Bench'))} + Deadlift ${Math.round(e1rm('Deadlift'))} — crossing the 1,000 lb milestone was a stated goal and the data shows it was achieved around early 2024.`,
+      body:`Est. Squat ${Math.round(e1rm('Squat'))} + Bench ${Math.round(e1rm('Bench'))} + Deadlift ${Math.round(e1rm('Deadlift'))} — projected from working sets using the Epley formula, not recorded singles. Actual recorded PRs were Squat ${sqPR.w}, Bench ${bePR.w}, Deadlift ${dlPR.w} lbs, putting the real total at ${sqPR.w+bePR.w+dlPR.w} lbs — crossing the 1,000 lb milestone around early 2024.`,
       tag:'🏆 Milestone'
     },
     {
