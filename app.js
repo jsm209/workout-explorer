@@ -268,7 +268,8 @@ function renderLog(){
 
 // Insights
 function renderInsights(){
-  if(document.getElementById('insights-grid').children.length) return;
+  if(document.getElementById('insights-grid').dataset.done) return;
+  document.getElementById('insights-grid').dataset.done = '1';
 
   const w = WORKOUTS;
   const e1rm = ex => Math.max(...w.filter(d=>d.exercises[ex]).map(d=>Math.max(...d.exercises[ex].map(s=>s.reps>1?s.weight*(1+s.reps/30):s.weight))));
@@ -367,13 +368,62 @@ function renderInsights(){
     },
   ];
 
-  document.getElementById('insights-grid').innerHTML = cards.map(c=>`
-    <div class="insight-card">
-      <h3>${c.title}</h3>
-      <div class="insight-value">${c.value}</div>
-      <p>${c.body}</p>
-      <span class="insight-tag">${c.tag}</span>
-    </div>`).join('');
+  const recCards = [
+    {
+      title:'Your Pull Volume Is Critically Low',
+      value:'6% pull ratio',
+      body:`You benched 245 sessions but only did barbell rows 15 times — a 0.06 pull-to-push ratio. Lat pulldown (41 sessions) helps, but horizontal pulling is nearly absent. This imbalance over years is a common cause of shoulder issues and posture problems. Aim for at least 1 row session per bench session.`,
+      tag:'⚠️ Imbalance'
+    },
+    {
+      title:'Deadlift Is Way Below Peak',
+      value:'-130 lbs in 6 months',
+      body:`Your deadlift has dropped from a 445 lb PR to a recent max of 315 lbs — a 130 lb regression. Squat is down 20 lbs and bench 30 lbs, but deadlift is by far the biggest drop. This likely reflects the 164-day break in 2025 and not fully rebuilding since. Prioritize deadlift frequency to reclaim lost ground.`,
+      tag:'📉 Regression'
+    },
+    {
+      title:'Squat and Bench Are Trained Together Too Often',
+      value:'177 same-day sessions',
+      body:`You squatted and benched on the same day 177 times — 59% of all workouts. While not inherently bad, this likely means one lift is always done fatigued. Separating them into dedicated lower/upper days could help both lifts progress faster.`,
+      tag:'🗓 Programming'
+    },
+    {
+      title:'Rep Range Is Well Balanced for Hypertrophy',
+      value:'59% in 7–12 rep range',
+      body:`Most of your training falls in the hypertrophy range (7–12 reps), with a solid 26% in the strength range (4–6 reps). This is a healthy distribution. The 10.8% in 1–3 rep range shows you do test your strength periodically. No major changes needed here.`,
+      tag:'✅ Good habit'
+    },
+    {
+      title:'Tricep Work Is Underrepresented',
+      value:'20 sessions total',
+      body:`For someone who benches 245 times, tricep isolation work (pushdowns etc.) only appears 20 times. Triceps are the primary mover in the lockout phase of bench. Adding dedicated tricep work more consistently could directly improve your bench ceiling.`,
+      tag:'💪 Weak link'
+    },
+    {
+      title:'Rest Days Are Well Managed',
+      value:'2 days most common',
+      body:`The most common gap between sessions is 2 days (107 times), followed by 3 days (61 times). You rarely train on back-to-back days (30 times) and almost never two days in a row without rest. This is a sustainable recovery pattern — keep it.`,
+      tag:'✅ Good habit'
+    },
+    {
+      title:'Consider Tracking Bodyweight More Consistently',
+      value:'Only 10 real entries',
+      body:`You only recorded your bodyweight 10 times across 4 years, all in 2022. Tracking weekly would let you correlate weight changes with strength gains and make intentional bulk/cut decisions rather than estimating in hindsight.`,
+      tag:'📋 Tracking'
+    },
+    {
+      title:'The 2025 Break Cost Real Strength',
+      value:'164 days off',
+      body:`The gap from Dec 2024 to Jun 2025 is the single biggest factor in your current numbers being below peak. The good news: strength returns faster than it was built. A focused 3–4 month block prioritizing the big 3 should get you back to 2024 levels.`,
+      tag:'🔄 Recovery'
+    },
+  ];
+
+  document.getElementById('insights-grid').innerHTML =
+    `<div style="grid-column:1/-1;font-size:.78rem;text-transform:uppercase;letter-spacing:.07em;color:#b0a498;padding:.25rem 0">Observations</div>` +
+    cards.map(c=>`<div class="insight-card"><h3>${c.title}</h3><div class="insight-value">${c.value}</div><p>${c.body}</p><span class="insight-tag">${c.tag}</span></div>`).join('') +
+    `<div style="grid-column:1/-1;font-size:.78rem;text-transform:uppercase;letter-spacing:.07em;color:#b0a498;padding:.75rem 0 .25rem">Recommendations</div>` +
+    recCards.map(c=>`<div class="insight-card"><h3>${c.title}</h3><div class="insight-value">${c.value}</div><p>${c.body}</p><span class="insight-tag">${c.tag}</span></div>`).join('');
 }
 
 // Bodyweight
