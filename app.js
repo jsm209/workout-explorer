@@ -24,7 +24,7 @@ document.querySelectorAll('.tab').forEach(btn => btn.addEventListener('click', (
   document.querySelectorAll('.tab-content').forEach(s=>s.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
-  ({progress:renderProgress,insights:renderInsights,heatmap:renderHeatmap,volume:renderVolume,compare:renderCompare,prs:renderPRs,log:renderLog,bodyweight:renderBodyweight})[btn.dataset.tab]?.();
+  ({progress:renderProgress,insights:renderInsights,storyline:renderStoryline,heatmap:renderHeatmap,volume:renderVolume,compare:renderCompare,prs:renderPRs,log:renderLog,bodyweight:renderBodyweight})[btn.dataset.tab]?.();
 }));
 
 // Stats
@@ -266,10 +266,80 @@ function renderLog(){
   }).join('');
 }
 
+// Storyline
+function renderStoryline(){
+  if(document.getElementById('storyline-content').innerHTML) return;
+
+  const s = n=>`<span class="story-stat">${n}</span>`;
+
+  const chapters = [
+    {
+      title:'The Beginning — Finding the Bar',
+      period:'March – May 2022',
+      body:`Joshua walked into the gym in March 2022 and started logging from day one. The numbers tell the story of someone brand new to structured lifting: a ${s('215 lb squat')}, ${s('145 lb bench')}, and ${s('245 lb deadlift')} in the first month. Not bad for a starting point, but there was clearly a long road ahead. He trained ${s('10–11 times a month')} right out of the gate — a frequency that showed real commitment from the start.
+      <br><br>Over those first three months, every lift moved. By May, the squat was up to ${s('235 lbs')}, bench to ${s('160 lbs')}, and deadlift to ${s('295 lbs')}. The body was adapting fast, as it does for beginners. Bodyweight hovered around ${s('143–146 lbs')} — lean, and clearly leaving room to grow.`
+    },
+    {
+      title:'The Summer Slump',
+      period:'June – October 2022',
+      body:`Then things went quiet. June and July have no entries at all, and August shows only ${s('2 workouts')}. Something pulled Joshua away from the gym — summer, life, or just the natural ebb that most lifters experience in their first year. When he came back in September, the numbers had slipped: squat back to ${s('225 lbs')}, bench at ${s('135 lbs')}, bodyweight down to ${s('139 lbs')}.
+      <br><br>October was sparse too — just ${s('3 sessions')}. But the deadlift quietly held at ${s('295 lbs')}, a sign that the strength wasn't fully gone, just dormant.`
+    },
+    {
+      title:'The Comeback — Deadlift Breaks Out',
+      period:'November – December 2022',
+      body:`November marked a real return. Eight sessions, and the numbers jumped hard — especially the deadlift, which surged to ${s('330 lbs')} in a single month. That's a ${s('+35 lb')} jump from the pre-summer peak. The squat climbed to ${s('255 lbs')} and bench to ${s('155 lbs')}. Something clicked.
+      <br><br>December was lighter on volume but the bench hit ${s('165 lbs')} for the first time, and the squat held at ${s('245 lbs')}. The foundation was being rebuilt, stronger than before.`
+    },
+    {
+      title:'A Quiet Year of Grinding',
+      period:'January – July 2023',
+      body:`2023 started with promise — a ${s('265 lb squat')} and ${s('325 lb deadlift')} in January — but the deadlift then disappeared from the log entirely for the next ${s('9 months')}. Whether it was a programming choice or an injury, the pull from the floor went on hiatus.
+      <br><br>The squat and bench kept grinding forward slowly. By mid-2023, the squat was consistently in the ${s('265–275 lb')} range and bench was stuck around ${s('145–165 lbs')}. Volume was moderate — ${s('3–6 sessions a month')} — and the exercise variety was limited. This was a maintenance phase more than a growth phase.`
+    },
+    {
+      title:'The Awakening — Everything Clicks',
+      period:'August – December 2023',
+      body:`August 2023 was a turning point. Joshua trained ${s('11 times')} — the most since the very first month — and started adding accessories: curls, lateral raises, rows, flys. The exercise variety jumped from 5 to ${s('9 exercises')}. Something shifted in the approach.
+      <br><br>The results were immediate. Squat went from ${s('275 lbs')} in August to ${s('315 lbs')} by October — a ${s('+40 lb')} jump in two months. Bench broke through to ${s('185 lbs')}. And in November, the deadlift came back — roaring back at ${s('355 lbs')}, then ${s('405 lbs')} in December. Volume hit ${s('191k–208k lbs/month')}, the highest of the year. This was the start of something serious.`
+    },
+    {
+      title:'Peak — The 1,000 lb Total',
+      period:'January – April 2024',
+      body:`This was Joshua's best stretch of lifting. January and February 2024 were the two highest-volume months in the entire dataset — ${s('270k lbs')} and ${s('265k lbs')} respectively — with ${s('18 sessions each')}. The squat hit its all-time PR of ${s('345 lbs')} in January. Bench peaked at ${s('225 lbs')} in January and again in April. The deadlift climbed to its all-time PR of ${s('445 lbs')} in April.
+      <br><br>Adding those up: ${s('345 + 225 + 445 = 1,015 lbs')} — the 1,000 lb powerlifting total, achieved. At a bodyweight of around ${s('158 lbs')}, that's a ${s('6.4× bodyweight total')}, a genuine milestone in the sport. This was the summit.`
+    },
+    {
+      title:'After the Peak — Deload and Drift',
+      period:'May – December 2024',
+      body:`After the April peak, something changed. May's deadlift dropped to ${s('135 lbs')} — likely a planned deload or a reset after months of heavy pulling. Frequency fell from 18 sessions a month to ${s('5–7')}. The squat and bench held reasonably well through mid-year, but the intensity was clearly lower.
+      <br><br>By August, there are no entries at all. September and October show just ${s('3 sessions each')}, bench-only. The big lifts had gone quiet again. December showed signs of life — ${s('5 sessions')}, squat back to ${s('225 lbs')} — but the momentum from early 2024 was gone.`
+    },
+    {
+      title:'The Long Break',
+      period:'December 2024 – May 2025',
+      body:`Then silence. ${s('164 days')} — nearly five and a half months — with no entries in the log. The longest gap in four years of training. What happened during this time isn't recorded, but the numbers on the other side tell the story of what a long break costs.`
+    },
+    {
+      title:'The Return',
+      period:'June 2025 – Present',
+      body:`June 2025: Joshua came back. Nine sessions, and the squat was already at ${s('325 lbs')} — a remarkable retention of strength given the layoff. The deadlift returned at ${s('315 lbs')}, down ${s('130 lbs')} from its peak but moving again. Bench was at ${s('215 lbs')}.
+      <br><br>The months since have been inconsistent — some strong months, some sparse ones — but the trajectory is upward. April 2026 shows ${s('8 sessions')}, the squat back to ${s('325 lbs')}, deadlift at ${s('315 lbs')}, and bench at ${s('195 lbs')}. The body remembers. The 1,000 lb total is within reach again — and this time, with four years of experience behind it.`
+    },
+  ];
+
+  document.getElementById('storyline-content').innerHTML = chapters.map((c,i)=>`
+    <div class="story-chapter">
+      <div class="story-period">${c.period}</div>
+      <h2>${c.title}</h2>
+      <p>${c.body}</p>
+    </div>
+    ${i < chapters.length-1 ? '<hr class="story-divider">' : ''}`).join('');
+}
+
 // Insights
 function renderInsights(){
-  if(document.getElementById('insights-grid').dataset.done) return;
-  document.getElementById('insights-grid').dataset.done = '1';
+  if(document.getElementById('insights-grid').innerHTML) return;
 
   const w = WORKOUTS;
   const e1rm = ex => Math.max(...w.filter(d=>d.exercises[ex]).map(d=>Math.max(...d.exercises[ex].map(s=>s.reps>1?s.weight*(1+s.reps/30):s.weight))));

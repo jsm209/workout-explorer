@@ -57,3 +57,10 @@ input[type=text]{min-width:180px}
 .insight-card .insight-value{font-size:1.5rem;font-weight:700;color:#3d3530;margin-bottom:.35rem}
 .insight-card p{font-size:.83rem;color:#8a7d72;line-height:1.55}
 .insight-card .insight-tag{display:inline-block;font-size:.7rem;background:#e8e0d4;color:#6a7a5a;border-radius:4px;padding:.15rem .5rem;margin-top:.5rem}
+#storyline-content{max-width:720px}
+.story-chapter{margin-bottom:2.5rem}
+.story-chapter h2{font-size:1.1rem;color:#3d3530;font-weight:700;margin-bottom:.25rem}
+.story-chapter .story-period{font-size:.75rem;color:#b0a498;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem}
+.story-chapter p{font-size:.9rem;color:#5a4f48;line-height:1.75;margin-bottom:.6rem}
+.story-stat{display:inline-block;background:#e8e0d4;border-radius:4px;padding:.1rem .45rem;font-size:.8rem;color:#3d3530;font-weight:600;margin:0 .1rem}
+.story-divider{border:none;border-top:1px solid #d4c9bb;margin:2rem 0}
