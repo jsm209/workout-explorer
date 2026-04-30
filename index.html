@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Workout Explorer</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>💪 Workout Explorer</h1>
+    <div id="stats-bar"></div>
+  </header>
+  <nav id="tabs">
+    <button class="tab active" data-tab="progress">Progress</button>
+    <button class="tab" data-tab="heatmap">Heatmap</button>
+    <button class="tab" data-tab="volume">Volume</button>
+    <button class="tab" data-tab="compare">Compare</button>
+    <button class="tab" data-tab="prs">PRs</button>
+    <button class="tab" data-tab="log">Log</button>
+  </nav>
+  <main>
+    <section id="tab-progress" class="tab-content active">
+      <div class="controls">
+        <select id="prog-exercise"></select>
+        <select id="prog-metric">
+          <option value="max">Max Weight</option>
+          <option value="volume">Total Volume (lbs)</option>
+          <option value="reps">Total Reps</option>
+          <option value="sets">Sets Performed</option>
+        </select>
+        <select id="prog-range">
+          <option value="all">All Time</option>
+          <option value="year">Past Year</option>
+          <option value="6mo">Past 6 Months</option>
+          <option value="3mo">Past 3 Months</option>
+        </select>
+      </div>
+      <div class="chart-wrap"><p class="chart-title" id="prog-title"></p><canvas id="progress-chart"></canvas></div>
+    </section>
+
+    <section id="tab-heatmap" class="tab-content">
+      <div class="controls">
+        <select id="hm-year"></select>
+        <select id="hm-metric">
+          <option value="workouts">Workouts</option>
+          <option value="volume">Volume</option>
+          <option value="sets">Sets</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:flex-start">
+        <div class="hm-day-labels">
+          <div class="hm-day-label"></div><div class="hm-day-label">M</div>
+          <div class="hm-day-label"></div><div class="hm-day-label">W</div>
+          <div class="hm-day-label"></div><div class="hm-day-label">F</div>
+          <div class="hm-day-label"></div>
+        </div>
+        <div id="heatmap-wrap"></div>
+      </div>
+      <div class="hm-legend">Less <div class="hm-legend-cells" id="hm-legend-cells"></div> More</div>
+    </section>
+
+    <section id="tab-volume" class="tab-content">
+      <div class="controls">
+        <select id="vol-range">
+          <option value="all">All Time</option>
+          <option value="year">Past Year</option>
+          <option value="6mo">Past 6 Months</option>
+          <option value="3mo">Past 3 Months</option>
+        </select>
+        <select id="vol-group">
+          <option value="month">By Month</option>
+          <option value="week">By Week</option>
+        </select>
+      </div>
+      <div class="grid2">
+        <div class="chart-wrap"><p class="chart-title">Total Volume Over Time</p><canvas id="vol-chart"></canvas></div>
+        <div class="chart-wrap"><p class="chart-title">Workouts Per Period</p><canvas id="freq-chart"></canvas></div>
+      </div>
+      <div class="chart-wrap tall"><p class="chart-title">Volume by Exercise (Top 15)</p><canvas id="ex-vol-chart"></canvas></div>
+    </section>
+
+    <section id="tab-compare" class="tab-content">
+      <div class="controls">
+        <select id="cmp-ex1"></select>
+        <span style="color:#555">vs</span>
+        <select id="cmp-ex2"></select>
+        <select id="cmp-metric">
+          <option value="max">Max Weight</option>
+          <option value="volume">Volume</option>
+        </select>
+        <select id="cmp-range">
+          <option value="all">All Time</option>
+          <option value="year">Past Year</option>
+          <option value="6mo">Past 6 Months</option>
+          <option value="3mo">Past 3 Months</option>
+        </select>
+      </div>
+      <div class="chart-wrap tall"><canvas id="compare-chart"></canvas></div>
+    </section>
+
+    <section id="tab-prs" class="tab-content">
+      <div class="controls">
+        <input type="text" id="pr-search" placeholder="Filter exercises...">
+      </div>
+      <div id="pr-grid"></div>
+    </section>
+
+    <section id="tab-log" class="tab-content">
+      <div class="controls">
+        <input type="text" id="log-search" placeholder="Search exercise...">
+        <input type="month" id="log-month">
+      </div>
+      <div id="log-list"></div>
+    </section>
+  </main>
+</div>
+<div class="hm-tooltip" id="hm-tooltip"></div>
+<script src="parse.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
