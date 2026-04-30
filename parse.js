@@ -24,7 +24,8 @@ function parseCSV(text) {
 
     if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(col0)) {
       const [m, d, y] = col0.split('/').map(Number);
-      current = { date: new Date(y, m - 1, d), dateStr: col0, exercises: {} };
+      const bw = parseFloat((lines[i][1] || '').trim()) || null;
+      current = { date: new Date(y, m - 1, d), dateStr: col0, bodyweight: bw, exercises: {} };
       workouts.push(current);
       continue;
     }
@@ -61,6 +62,7 @@ function getProgressData(workouts, exercise, metric) {
     const sets = w.exercises[exercise];
     let value;
     if (metric === 'max') value = Math.max(...sets.map(s => s.weight));
+    else if (metric === 'e1rm') value = Math.max(...sets.map(s => s.reps > 1 ? s.weight * (1 + s.reps / 30) : s.weight));
     else if (metric === 'volume') value = sets.reduce((a, s) => a + s.weight * s.reps, 0);
     else if (metric === 'reps') value = sets.reduce((a, s) => a + s.reps, 0);
     else if (metric === 'sets') value = sets.length;

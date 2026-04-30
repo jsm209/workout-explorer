@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Workout Explorer</title>
+<title>Joshua's Workout Explorer</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <link rel="stylesheet" href="style.css">
@@ -11,23 +11,33 @@
 <body>
 <div id="app">
   <header>
-    <h1>💪 Workout Explorer</h1>
+    <h1>🏋️ Joshua's Workout Explorer</h1>
     <div id="stats-bar"></div>
   </header>
+  <div style="background:#e8e0d4;padding:.5rem 2rem;border-bottom:1px solid #d4c9bb;font-size:.82rem;color:#8a7d72">
+    A personal dashboard visualizing Joshua's weight training data since March 2022 — tracking strength progress, volume, and consistency across all major lifts over time.
+  </div>
   <nav id="tabs">
     <button class="tab active" data-tab="progress">Progress</button>
+    <button class="tab" data-tab="insights">Insights</button>
     <button class="tab" data-tab="heatmap">Heatmap</button>
     <button class="tab" data-tab="volume">Volume</button>
     <button class="tab" data-tab="compare">Compare</button>
     <button class="tab" data-tab="prs">PRs</button>
     <button class="tab" data-tab="log">Log</button>
+    <button class="tab" data-tab="bodyweight">Bodyweight</button>
   </nav>
   <main>
+    <section id="tab-insights" class="tab-content">
+      <div id="insights-grid"></div>
+    </section>
+
     <section id="tab-progress" class="tab-content active">
       <div class="controls">
         <select id="prog-exercise"></select>
         <select id="prog-metric">
           <option value="max">Max Weight</option>
+          <option value="e1rm">Estimated 1RM</option>
           <option value="volume">Total Volume (lbs)</option>
           <option value="reps">Total Reps</option>
           <option value="sets">Sets Performed</option>
@@ -81,6 +91,7 @@
         <div class="chart-wrap"><p class="chart-title">Workouts Per Period</p><canvas id="freq-chart"></canvas></div>
       </div>
       <div class="chart-wrap tall"><p class="chart-title">Volume by Exercise (Top 15)</p><canvas id="ex-vol-chart"></canvas></div>
+      <div class="chart-wrap"><p class="chart-title">Training Frequency by Day of Week</p><canvas id="dow-chart"></canvas></div>
     </section>
 
     <section id="tab-compare" class="tab-content">
@@ -115,6 +126,20 @@
         <input type="month" id="log-month">
       </div>
       <div id="log-list"></div>
+    </section>
+
+    <section id="tab-bodyweight" class="tab-content">
+      <div class="controls">
+        <select id="bw-range">
+          <option value="all">All Time</option>
+          <option value="year">Past Year</option>
+          <option value="6mo">Past 6 Months</option>
+          <option value="3mo">Past 3 Months</option>
+        </select>
+      </div>
+      <div class="chart-wrap"><p class="chart-title">Bodyweight Over Time</p><canvas id="bw-chart"></canvas></div>
+      <p style="font-size:.75rem;color:#b0a498;margin-top:-.75rem;margin-bottom:1.25rem">* Most values are estimated — bodyweight was only recorded sporadically. The curve was backfilled using known anchor points.</p>
+      <div class="chart-wrap"><p class="chart-title">Strength-to-Bodyweight Ratio</p><canvas id="bw-ratio-chart"></canvas></div>
     </section>
   </main>
 </div>

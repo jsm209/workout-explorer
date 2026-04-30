@@ -1,7 +1,7 @@
 """
 CSV CORRECTION SCRIPT
 =====================
-Run this after importing a new version of "Workout Log - weight training.csv".
+Run this after importing a new version of "workouts.csv".
 
 KNOWN DATA ISSUES:
 ------------------
@@ -14,13 +14,21 @@ KNOWN DATA ISSUES:
    the CSV and must be parsed with a proper CSV reader (not a naive split(',').
    The website's parse.js already handles this correctly.
 
+3. Bodyweight (column B) — only 10 real entries exist (Apr–Nov 2022, range
+   138–146 lbs). All other dates were backfilled with a synthetic arc:
+     - Mar 2022:  ~140 lbs  (start)
+     - Feb 2024:  ~158 lbs  (peak bulk for 1000 lb powerlifting total)
+     - Jun 2024:  ~154 lbs  (slight cut after)
+     - Apr 2026:  ~170 lbs  (current, height 5'10")
+   If you drop in a fresh CSV with new dates, run backfill_bodyweight() below
+   to fill any missing bodyweight entries using the same arc. Update the
+   ANCHORS dict if the current weight has changed.
+
 HOW TO RUN:
 -----------
     python3 fix_csv.py
 
-It will print what it changed and is safe to re-run (idempotent — won't
-double-halve already-corrected values because it only touches entries >= the
-cutoff date that are above a threshold weight, see ALREADY_CORRECTED_THRESHOLD).
+Safe to re-run — both fixes are idempotent.
 """
 
 import csv, re, os
@@ -86,3 +94,62 @@ if total_changed:
     print(f"\nSaved. {total_changed} total cells updated.")
 else:
     print("\nNo changes needed — CSV looks clean.")
+
+
+# ── Bodyweight backfill ────────────────────────────────────────────────────
+import datetime, random
+
+# Update the last anchor if current bodyweight has changed.
+ANCHORS = {
+    '3/2/2022':   140.0,
+    '4/18/2022':  143.0,
+    '5/12/2022':  145.0,
+    '5/29/2022':  146.0,
+    '9/16/2022':  139.0,
+    '9/18/2022':  140.6,
+    '9/30/2022':  141.2,
+    '10/30/2022': 138.0,
+    '11/1/2022':  139.6,
+    '11/11/2022': 138.8,
+    '11/18/2022': 139.8,
+    '2/1/2024':   158.0,   # peak bulk — 1000 lb powerlifting total achieved here
+    '6/1/2024':   154.0,   # slight cut after peak
+    '4/29/2026':  170.0,   # ← UPDATE THIS when current weight changes
+}
+
+def backfill_bodyweight():
+    rows = list(csv.reader(open(CSV_PATH)))
+    origin = datetime.date(2022, 3, 2)
+
+    def to_days(s):
+        m,d,y = s.split('/'); return (datetime.date(int(y),int(m),int(d)) - origin).days
+
+    anchors = sorted((to_days(k), v) for k,v in ANCHORS.items())
+
+    def interp(d):
+        for i in range(len(anchors)-1):
+            d0,w0 = anchors[i]; d1,w1 = anchors[i+1]
+            if d0 <= d <= d1:
+                return w0 + (w1-w0)*(d-d0)/(d1-d0)
+        return anchors[-1][1]
+
+    workout_rows = [(i,r[0]) for i,r in enumerate(rows) if r and re.match(r'^\d+/\d+/\d{4}$', r[0].strip())]
+    random.seed(42)
+    noise, filled = 0.0, 0
+    for i, date_str in workout_rows:
+        if rows[i][1].strip():
+            continue  # already has real or previously filled data, skip
+        d = to_days(date_str)
+        base = interp(d)
+        noise = noise*0.6 + random.uniform(-0.5, 0.5)*0.4
+        rows[i][1] = str(round(base + noise, 1))
+        filled += 1
+
+    if filled:
+        with open(CSV_PATH, 'w', newline='') as f:
+            csv.writer(f).writerows(rows)
+        print(f"Bodyweight: filled {filled} missing entries.")
+    else:
+        print("Bodyweight: all entries already present, nothing to fill.")
+
+backfill_bodyweight()
