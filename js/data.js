@@ -140,7 +140,18 @@ function buildWorkouts(text) {
   const lines = text.split('\n').map(splitCSVLine);
   const csvWorkouts = parseCSV(text);
   const byDate = {};
-  csvWorkouts.forEach(w => { byDate[w.dateStr] = w; });
+
+  csvWorkouts.forEach(w => {
+    if (!byDate[w.dateStr]) {
+      byDate[w.dateStr] = { ...w, exercises: { ...w.exercises } };
+    } else {
+      // Two sessions on same day — merge exercises
+      Object.entries(w.exercises).forEach(([ex, sets]) => {
+        if (!byDate[w.dateStr].exercises[ex]) byDate[w.dateStr].exercises[ex] = [];
+        byDate[w.dateStr].exercises[ex].push(...sets);
+      });
+    }
+  });
 
   Object.entries(Store.getAll()).forEach(([dateStr, workout]) => {
     if (workout === null) {
