@@ -26,6 +26,7 @@
     <button class="tab" data-tab="compare">Compare</button>
     <button class="tab" data-tab="prs">PRs</button>
     <button class="tab" data-tab="log">Log</button>
+    <button class="tab" data-tab="edit">+ Log Workout</button>
     <button class="tab" data-tab="bodyweight">Bodyweight</button>
   </nav>
   <main>
@@ -125,7 +126,24 @@
       <div id="pr-grid"></div>
     </section>
 
-    <section id="tab-log" class="tab-content">
+    <section id="tab-edit" class="tab-content">
+      <div id="editor-wrap">
+        <div class="editor-header">
+          <div class="controls" style="margin-bottom:0">
+            <input type="date" id="edit-date">
+            <button class="btn-primary" id="edit-load-btn">Load Existing</button>
+            <button class="btn-ghost" id="edit-clear-btn">Clear</button>
+          </div>
+          <div id="edit-status"></div>
+        </div>
+        <div id="editor-exercises"></div>
+        <button class="btn-ghost" id="edit-add-exercise">+ Add Exercise</button>
+        <div style="margin-top:1.5rem;display:flex;gap:.75rem;flex-wrap:wrap">
+          <button class="btn-primary" id="edit-save-btn">Save Workout</button>
+          <button class="btn-danger" id="edit-delete-btn" style="display:none">Delete This Workout</button>
+        </div>
+      </div>
+    </section>
       <div class="controls">
         <input type="text" id="log-search" placeholder="Search exercise...">
         <input type="month" id="log-month">
@@ -149,6 +167,7 @@
   </main>
 </div>
 <div class="hm-tooltip" id="hm-tooltip"></div>
+<script src="store.js"></script>
 <script src="parse.js"></script>
 <script src="app.js"></script>
 </body>

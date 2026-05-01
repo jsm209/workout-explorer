@@ -134,7 +134,31 @@ fetch('workouts.csv')
   .then(r => r.text())
   .then(text => {
     const lines = text.split('\n').map(splitCSVLine);
-    window.WORKOUTS = parseCSV(text);
+    const csvWorkouts = parseCSV(text);
+    window.splitCSVLine = splitCSVLine;
+    window.parseCSV = parseCSV;
+
+    // Merge localStorage overrides on top of CSV
+    const overrides = Store.getAll();
+    const csvByDate = {};
+    csvWorkouts.forEach(w => { csvByDate[w.dateStr] = w; });
+
+    // Apply overrides: null = deleted, object = added/replaced
+    Object.entries(overrides).forEach(([dateStr, workout]) => {
+      if (workout === null) {
+        delete csvByDate[dateStr]; // tombstone
+      } else {
+        const [m, d, y] = dateStr.split('/').map(Number);
+        csvByDate[dateStr] = {
+          date: new Date(y, m - 1, d),
+          dateStr,
+          bodyweight: workout.bodyweight || null,
+          exercises: workout.exercises
+        };
+      }
+    });
+
+    window.WORKOUTS = Object.values(csvByDate);
     window.WORKOUTS.sort((a, b) => a.date - b.date);
     window.EXERCISES = [...new Set(WORKOUTS.flatMap(w => Object.keys(w.exercises)))].sort();
     window.EXERCISE_GROUPS = parseCategories(lines);

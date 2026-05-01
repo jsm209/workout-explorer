@@ -24,7 +24,7 @@ document.querySelectorAll('.tab').forEach(btn => btn.addEventListener('click', (
   document.querySelectorAll('.tab-content').forEach(s=>s.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
-  ({progress:renderProgress,insights:renderInsights,storyline:renderStoryline,heatmap:renderHeatmap,volume:renderVolume,compare:renderCompare,prs:renderPRs,log:renderLog,bodyweight:renderBodyweight})[btn.dataset.tab]?.();
+  ({progress:renderProgress,insights:renderInsights,storyline:renderStoryline,heatmap:renderHeatmap,volume:renderVolume,compare:renderCompare,prs:renderPRs,log:renderLog,bodyweight:renderBodyweight,edit:renderEditor})[btn.dataset.tab]?.();
 }));
 
 // Stats
@@ -262,7 +262,7 @@ function renderLog(){
       const rows=w.exercises[ex].map(s=>`<tr class="lbl-${s.type}"><td>${s.set}</td><td>${s.weight}</td><td>${s.reps}</td><td>${s.weight*s.reps}</td></tr>`).join('');
       return `<div class="ex-block"><h4>${ex}</h4><table class="sets-table"><tr><th>Set</th><th>Weight</th><th>Reps</th><th>Vol</th></tr>${rows}</table></div>`;
     }).join('');
-    return `<div class="workout-day"><div class="day-header" onclick="this.nextElementSibling.classList.toggle('open')"><span class="day-date">${w.dateStr}</span><span class="day-summary">${exNames.join(', ')}</span></div><div class="day-body">${body}</div></div>`;
+    return `<div class="workout-day"><div class="day-header" onclick="this.nextElementSibling.classList.toggle('open')"><span class="day-date">${w.dateStr}<button class="log-edit-btn" onclick="event.stopPropagation();openEditor('${w.dateStr}')">Edit</button></span><span class="day-summary">${exNames.join(', ')}</span></div><div class="day-body">${body}</div></div>`;
   }).join('');
 }
 
@@ -541,6 +541,177 @@ function renderBodyweight(){
       x:{type:'time',time:{unit:'month'},ticks:{color:'#b0a498'},grid:{color:'#e8e0d4'}},
       y:{ticks:{color:'#b0a498',callback:v=>v.toFixed(2)+'×'},grid:{color:'#e8e0d4'}}
     }}
+  });
+}
+
+// Editor
+function openEditor(dateStr) {
+  // Switch to edit tab and load the workout
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(s=>s.classList.remove('active'));
+  document.querySelector('.tab[data-tab="edit"]').classList.add('active');
+  document.getElementById('tab-edit').classList.add('active');
+  renderEditor();
+  // Convert M/D/YYYY to YYYY-MM-DD for the date input
+  const [m,d,y] = dateStr.split('/');
+  document.getElementById('edit-date').value = `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+  loadWorkoutIntoEditor(dateStr);
+}
+
+function renderEditor() {
+  if(document.getElementById('edit-save-btn')._init) return;
+  document.getElementById('edit-save-btn')._init = true;
+
+  document.getElementById('edit-load-btn').addEventListener('click', () => {
+    const dateStr = editorDateStr();
+    if(!dateStr) return;
+    loadWorkoutIntoEditor(dateStr);
+  });
+
+  document.getElementById('edit-clear-btn').addEventListener('click', () => {
+    document.getElementById('editor-exercises').innerHTML = '';
+    document.getElementById('edit-status').textContent = '';
+    document.getElementById('edit-delete-btn').style.display = 'none';
+  });
+
+  document.getElementById('edit-add-exercise').addEventListener('click', () => {
+    addExerciseBlock('', []);
+  });
+
+  document.getElementById('edit-save-btn').addEventListener('click', saveEditor);
+
+  document.getElementById('edit-delete-btn').addEventListener('click', () => {
+    const dateStr = editorDateStr();
+    if(!dateStr) return;
+    if(!confirm(`Delete workout on ${dateStr}? This will hide it from all views.`)) return;
+    Store.delete(dateStr);
+    reloadData();
+    document.getElementById('edit-status').textContent = `Deleted ${dateStr}.`;
+    document.getElementById('editor-exercises').innerHTML = '';
+    document.getElementById('edit-delete-btn').style.display = 'none';
+  });
+}
+
+function editorDateStr() {
+  const val = document.getElementById('edit-date').value; // YYYY-MM-DD
+  if(!val) return null;
+  const [y,m,d] = val.split('-');
+  return `${parseInt(m)}/${parseInt(d)}/${y}`;
+}
+
+function loadWorkoutIntoEditor(dateStr) {
+  const workout = WORKOUTS.find(w => w.dateStr === dateStr);
+  document.getElementById('editor-exercises').innerHTML = '';
+  document.getElementById('edit-status').textContent = workout ? `Loaded ${dateStr}` : `New workout for ${dateStr}`;
+  document.getElementById('edit-delete-btn').style.display = workout ? 'inline-block' : 'none';
+  if(workout) {
+    Object.entries(workout.exercises).forEach(([ex, sets]) => addExerciseBlock(ex, sets));
+  }
+}
+
+function addExerciseBlock(name, sets) {
+  const container = document.getElementById('editor-exercises');
+  const div = document.createElement('div');
+  div.className = 'editor-exercise';
+  div.innerHTML = `
+    <div class="editor-exercise-header">
+      <input type="text" class="ex-name-input" placeholder="Exercise name" list="exercise-list" value="${name}">
+      <button class="btn-remove-ex" title="Remove exercise">✕ Remove</button>
+    </div>
+    <div class="editor-sets"></div>
+    <button class="btn-add-set">+ Add Set</button>`;
+
+  // Autocomplete datalist
+  if(!document.getElementById('exercise-list')) {
+    const dl = document.createElement('datalist');
+    dl.id = 'exercise-list';
+    dl.innerHTML = EXERCISES.map(e=>`<option value="${e}">`).join('');
+    document.body.appendChild(dl);
+  }
+
+  div.querySelector('.btn-remove-ex').addEventListener('click', () => div.remove());
+  div.querySelector('.btn-add-set').addEventListener('click', () => addSetRow(div.querySelector('.editor-sets'), null));
+
+  container.appendChild(div);
+
+  const setsToAdd = sets.length ? sets : [null];
+  setsToAdd.forEach(s => addSetRow(div.querySelector('.editor-sets'), s));
+}
+
+function addSetRow(container, set) {
+  const row = document.createElement('div');
+  row.className = 'editor-set-row';
+  row.innerHTML = `
+    <span class="set-label">#${container.children.length + 1}</span>
+    <input type="number" class="set-weight" placeholder="lbs" min="0" step="2.5" value="${set ? set.weight : ''}">
+    <span style="color:#b0a498;font-size:.8rem">×</span>
+    <input type="number" class="set-reps" placeholder="reps" min="0" step="1" value="${set ? set.reps : ''}">
+    <button class="btn-icon" title="Remove set">✕</button>`;
+  row.querySelector('.btn-icon').addEventListener('click', () => {
+    row.remove();
+    // Renumber
+    [...container.querySelectorAll('.set-label')].forEach((l,i) => l.textContent = `#${i+1}`);
+  });
+  container.appendChild(row);
+}
+
+function saveEditor() {
+  const dateStr = editorDateStr();
+  if(!dateStr) { alert('Please select a date.'); return; }
+
+  const exercises = {};
+  document.querySelectorAll('.editor-exercise').forEach(block => {
+    const name = block.querySelector('.ex-name-input').value.trim();
+    if(!name) return;
+    const sets = [];
+    block.querySelectorAll('.editor-set-row').forEach((row, i) => {
+      const weight = parseFloat(row.querySelector('.set-weight').value);
+      const reps = parseInt(row.querySelector('.set-reps').value);
+      if(!isNaN(weight) && !isNaN(reps)) {
+        sets.push({ set: String(i+1), weight, reps, type: 'normal' });
+      }
+    });
+    if(sets.length) exercises[name] = sets;
+  });
+
+  if(!Object.keys(exercises).length) { alert('Add at least one exercise with sets.'); return; }
+
+  Store.save(dateStr, { exercises });
+  reloadData();
+  document.getElementById('edit-status').textContent = `✓ Saved ${dateStr}`;
+  document.getElementById('edit-delete-btn').style.display = 'inline-block';
+}
+
+function reloadData() {
+  // Re-merge CSV + localStorage and refresh all rendered tabs
+  const overrides = Store.getAll();
+  const csvWorkouts = window._CSV_WORKOUTS || WORKOUTS.filter(w => !Store.getAll()[w.dateStr]);
+  // Simplest approach: re-dispatch data-ready after rebuilding WORKOUTS
+  fetch('workouts.csv').then(r=>r.text()).then(text=>{
+    const lines = text.split('\n').map(splitCSVLine);
+    const csvParsed = parseCSV(text);
+    const byDate = {};
+    csvParsed.forEach(w => { byDate[w.dateStr] = w; });
+    Object.entries(overrides).forEach(([dateStr, workout]) => {
+      if(workout === null) { delete byDate[dateStr]; }
+      else {
+        const [m,d,y] = dateStr.split('/').map(Number);
+        byDate[dateStr] = { date: new Date(y,m-1,d), dateStr, bodyweight: workout.bodyweight||null, exercises: workout.exercises };
+      }
+    });
+    window.WORKOUTS = Object.values(byDate).sort((a,b)=>a.date-b.date);
+    window.EXERCISES = [...new Set(WORKOUTS.flatMap(w=>Object.keys(w.exercises)))].sort();
+    // Invalidate rendered tabs so they re-render on next visit
+    ['insights-grid','storyline-content'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) { el.innerHTML = ''; }
+    });
+    Object.values(charts).forEach(c=>c.destroy());
+    Object.keys(charts).forEach(k=>delete charts[k]);
+    renderStats();
+    // Re-render whichever tab is active
+    const activeTab = document.querySelector('.tab.active')?.dataset.tab;
+    if(activeTab && activeTab !== 'edit') renderActiveTab(activeTab);
   });
 }
 
