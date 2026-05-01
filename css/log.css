@@ -1,0 +1,22 @@
+.workout-day{background:#faf7f2;border:1px solid #d4c9bb;border-radius:10px;margin-bottom:.6rem;overflow:hidden}
+.day-header{padding:.65rem 1rem;background:#f0ebe3;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;gap:.5rem}
+.day-header:hover{background:#e8e0d4}
+.day-date{color:#4a7a4a;font-weight:600;font-size:.88rem;display:flex;align-items:center;gap:.4rem;flex-shrink:0}
+.day-summary{font-size:.75rem;color:#a0948a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.day-body{padding:.75rem 1rem;display:none}
+.day-body.open{display:block}
+.ex-block{margin-bottom:.75rem}
+.ex-block h4{font-size:.8rem;color:#6a9e6a;margin-bottom:.25rem}
+.sets-table{width:100%;border-collapse:collapse;font-size:.78rem}
+.sets-table th{text-align:left;color:#b0a498;padding:.15rem .5rem}
+.sets-table td{padding:.18rem .5rem;color:#3d3530}
+.sets-table tr:nth-child(even) td{background:#f0ebe3}
+.lbl-super td:first-child,.lbl-dropset td:first-child{color:#c47c3a;font-style:italic}
+.log-edit-btn{font-size:.72rem;background:none;border:1px solid #d4c9bb;color:#8a7d72;border-radius:4px;padding:.1rem .5rem;cursor:pointer;flex-shrink:0}
+.log-edit-btn:hover{border-color:#4a7a4a;color:#4a7a4a}
+
+@media(max-width:640px){
+  .day-header{padding:.6rem .75rem}
+  .day-body{padding:.6rem .75rem}
+  .sets-table{font-size:.74rem}
+}

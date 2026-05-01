@@ -1,11 +1,13 @@
+// js/data.js — CSV parsing, data helpers, and data loading
+// To migrate to Supabase: replace the fetch block at the bottom with a Supabase query
+
 function splitCSVLine(line) {
   const result = [], re = /("([^"]*)")|([^,]*)/g;
-  let m, last = 0;
+  let m;
   while ((m = re.exec(line)) !== null) {
     if (m.index === re.lastIndex && m[0] === '') { result.push(''); re.lastIndex++; continue; }
     result.push(m[2] !== undefined ? m[2] : m[3]);
-    last = re.lastIndex;
-    if (line[last] === ',') re.lastIndex++;
+    if (line[re.lastIndex] === ',') re.lastIndex++;
     else break;
   }
   return result;
@@ -13,7 +15,7 @@ function splitCSVLine(line) {
 
 function parseCSV(text) {
   const lines = text.split('\n').map(splitCSVLine);
-  const headers = lines[1]; // row 1 = column names
+  const headers = lines[1];
   const workouts = [];
   let current = null;
 
@@ -24,8 +26,12 @@ function parseCSV(text) {
 
     if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(col0)) {
       const [m, d, y] = col0.split('/').map(Number);
-      const bw = parseFloat((lines[i][1] || '').trim()) || null;
-      current = { date: new Date(y, m - 1, d), dateStr: col0, bodyweight: bw, exercises: {} };
+      current = {
+        date: new Date(y, m - 1, d),
+        dateStr: col0,
+        bodyweight: parseFloat((row[1] || '').trim()) || null,
+        exercises: {}
+      };
       workouts.push(current);
       continue;
     }
@@ -36,17 +42,30 @@ function parseCSV(text) {
     for (let c = 2; c < headers.length; c++) {
       const exName = (headers[c] || '').trim();
       if (!exName) continue;
-      const cell = (row[c] || '').trim();
-      const match = cell.match(/^(\d+(?:\.\d+)?)x(\d+)$/i);
+      const match = (row[c] || '').trim().match(/^(\d+(?:\.\d+)?)x(\d+)$/i);
       if (!match) continue;
-      const weight = parseFloat(match[1]);
-      const reps = parseInt(match[2]);
       if (!current.exercises[exName]) current.exercises[exName] = [];
-      current.exercises[exName].push({ set: col0, weight, reps, type: setType });
+      current.exercises[exName].push({ set: col0, weight: parseFloat(match[1]), reps: parseInt(match[2]), type: setType });
     }
   }
   return workouts.filter(w => Object.keys(w.exercises).length > 0);
 }
+
+function parseCategories(lines) {
+  const groups = {};
+  let cat = 'Other';
+  for (let c = 2; c < lines[1].length; c++) {
+    const catLabel = (lines[0][c] || '').trim();
+    if (catLabel) cat = catLabel;
+    const name = (lines[1][c] || '').trim();
+    if (!name) continue;
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(name);
+  }
+  return groups;
+}
+
+// ── Data helpers ───────────────────────────────────────────────────────────
 
 function filterByRange(workouts, range) {
   if (range === 'all') return workouts;
@@ -115,52 +134,35 @@ function getExerciseVolumes(workouts) {
   return Object.entries(map).sort((a,b) => b[1]-a[1]);
 }
 
-function parseCategories(lines) {
-  const catRow = lines[0], nameRow = lines[1];
-  const groups = {};
-  let currentCat = 'Other';
-  for (let c = 2; c < nameRow.length; c++) {
-    const cat = (catRow[c] || '').trim();
-    if (cat) currentCat = cat;
-    const name = (nameRow[c] || '').trim();
-    if (!name) continue;
-    if (!groups[currentCat]) groups[currentCat] = [];
-    groups[currentCat].push(name);
-  }
-  return groups; // e.g. { Compound: [...], Accesories: [...] }
+// ── Load & merge ───────────────────────────────────────────────────────────
+
+function buildWorkouts(text) {
+  const lines = text.split('\n').map(splitCSVLine);
+  const csvWorkouts = parseCSV(text);
+  const byDate = {};
+  csvWorkouts.forEach(w => { byDate[w.dateStr] = w; });
+
+  Object.entries(Store.getAll()).forEach(([dateStr, workout]) => {
+    if (workout === null) {
+      delete byDate[dateStr];
+    } else {
+      const [m, d, y] = dateStr.split('/').map(Number);
+      byDate[dateStr] = { date: new Date(y, m-1, d), dateStr, bodyweight: workout.bodyweight || null, exercises: workout.exercises };
+    }
+  });
+
+  window.WORKOUTS = Object.values(byDate).sort((a,b) => a.date - b.date);
+  window.EXERCISES = [...new Set(WORKOUTS.flatMap(w => Object.keys(w.exercises)))].sort();
+  window.EXERCISE_GROUPS = parseCategories(lines);
 }
+
+// Expose for reloadData in editor
+window._csvText = null;
 
 fetch('workouts.csv')
   .then(r => r.text())
   .then(text => {
-    const lines = text.split('\n').map(splitCSVLine);
-    const csvWorkouts = parseCSV(text);
-    window.splitCSVLine = splitCSVLine;
-    window.parseCSV = parseCSV;
-
-    // Merge localStorage overrides on top of CSV
-    const overrides = Store.getAll();
-    const csvByDate = {};
-    csvWorkouts.forEach(w => { csvByDate[w.dateStr] = w; });
-
-    // Apply overrides: null = deleted, object = added/replaced
-    Object.entries(overrides).forEach(([dateStr, workout]) => {
-      if (workout === null) {
-        delete csvByDate[dateStr]; // tombstone
-      } else {
-        const [m, d, y] = dateStr.split('/').map(Number);
-        csvByDate[dateStr] = {
-          date: new Date(y, m - 1, d),
-          dateStr,
-          bodyweight: workout.bodyweight || null,
-          exercises: workout.exercises
-        };
-      }
-    });
-
-    window.WORKOUTS = Object.values(csvByDate);
-    window.WORKOUTS.sort((a, b) => a.date - b.date);
-    window.EXERCISES = [...new Set(WORKOUTS.flatMap(w => Object.keys(w.exercises)))].sort();
-    window.EXERCISE_GROUPS = parseCategories(lines);
+    window._csvText = text;
+    buildWorkouts(text);
     document.dispatchEvent(new Event('data-ready'));
   });

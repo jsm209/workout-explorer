@@ -2,21 +2,26 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#e8e0d4">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>Joshua's Workout Explorer</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/charts.css">
+<link rel="stylesheet" href="css/log.css">
+<link rel="stylesheet" href="css/cards.css">
+<link rel="stylesheet" href="css/editor.css">
 </head>
 <body>
 <div id="app">
   <header>
     <h1>🏋️ Joshua's Workout Explorer</h1>
+    <button class="btn-log-workout" onclick="const t=new Date();openEditor(`${t.getMonth()+1}/${t.getDate()}/${t.getFullYear()}`)">+ Log Workout</button>
     <div id="stats-bar"></div>
   </header>
-  <div style="background:#e8e0d4;padding:.5rem 2rem;border-bottom:1px solid #d4c9bb;font-size:.82rem;color:#8a7d72">
-    A personal dashboard visualizing Joshua's weight training data since March 2022 — tracking strength progress, volume, and consistency across all major lifts over time.
-  </div>
+  <div id="subheader">A personal dashboard visualizing Joshua's weight training data since March 2022 — tracking strength progress, volume, and consistency across all major lifts over time.</div>
   <nav id="tabs">
     <button class="tab active" data-tab="progress">Progress</button>
     <button class="tab" data-tab="insights">Insights</button>
@@ -26,18 +31,11 @@
     <button class="tab" data-tab="compare">Compare</button>
     <button class="tab" data-tab="prs">PRs</button>
     <button class="tab" data-tab="log">Log</button>
-    <button class="tab" data-tab="edit">+ Log Workout</button>
     <button class="tab" data-tab="bodyweight">Bodyweight</button>
   </nav>
   <main>
-    <section id="tab-storyline" class="tab-content">
-      <div id="storyline-content"></div>
-    </section>
 
-    <section id="tab-insights" class="tab-content">
-      <div id="insights-grid"></div>
-    </section>
-
+    <!-- Progress -->
     <section id="tab-progress" class="tab-content active">
       <div class="controls">
         <select id="prog-exercise"></select>
@@ -58,6 +56,17 @@
       <div class="chart-wrap"><p class="chart-title" id="prog-title"></p><canvas id="progress-chart"></canvas></div>
     </section>
 
+    <!-- Insights -->
+    <section id="tab-insights" class="tab-content">
+      <div id="insights-grid"></div>
+    </section>
+
+    <!-- Storyline -->
+    <section id="tab-storyline" class="tab-content">
+      <div id="storyline-content"></div>
+    </section>
+
+    <!-- Heatmap -->
     <section id="tab-heatmap" class="tab-content">
       <div class="controls">
         <select id="hm-year"></select>
@@ -79,6 +88,7 @@
       <div class="hm-legend">Less <div class="hm-legend-cells" id="hm-legend-cells"></div> More</div>
     </section>
 
+    <!-- Volume -->
     <section id="tab-volume" class="tab-content">
       <div class="controls">
         <select id="vol-range">
@@ -100,10 +110,11 @@
       <div class="chart-wrap"><p class="chart-title">Training Frequency by Day of Week</p><canvas id="dow-chart"></canvas></div>
     </section>
 
+    <!-- Compare -->
     <section id="tab-compare" class="tab-content">
       <div class="controls">
         <select id="cmp-ex1"></select>
-        <span style="color:#555">vs</span>
+        <span style="color:#b0a498">vs</span>
         <select id="cmp-ex2"></select>
         <select id="cmp-metric">
           <option value="max">Max Weight</option>
@@ -119,6 +130,7 @@
       <div class="chart-wrap tall"><canvas id="compare-chart"></canvas></div>
     </section>
 
+    <!-- PRs -->
     <section id="tab-prs" class="tab-content">
       <div class="controls">
         <input type="text" id="pr-search" placeholder="Filter exercises...">
@@ -126,6 +138,31 @@
       <div id="pr-grid"></div>
     </section>
 
+    <!-- Log -->
+    <section id="tab-log" class="tab-content">
+      <div class="controls">
+        <input type="text" id="log-search" placeholder="Search exercise...">
+        <input type="month" id="log-month">
+      </div>
+      <div id="log-list"></div>
+    </section>
+
+    <!-- Bodyweight -->
+    <section id="tab-bodyweight" class="tab-content">
+      <div class="controls">
+        <select id="bw-range">
+          <option value="all">All Time</option>
+          <option value="year">Past Year</option>
+          <option value="6mo">Past 6 Months</option>
+          <option value="3mo">Past 3 Months</option>
+        </select>
+      </div>
+      <div class="chart-wrap"><p class="chart-title">Bodyweight Over Time</p><canvas id="bw-chart"></canvas></div>
+      <p style="font-size:.75rem;color:#b0a498;margin-top:-.75rem;margin-bottom:1.25rem">* Most values are estimated — bodyweight was only recorded sporadically. The curve was backfilled using known anchor points.</p>
+      <div class="chart-wrap"><p class="chart-title">Strength-to-Bodyweight Ratio</p><canvas id="bw-ratio-chart"></canvas></div>
+    </section>
+
+    <!-- Edit -->
     <section id="tab-edit" class="tab-content">
       <div id="editor-wrap">
         <div class="editor-header">
@@ -144,31 +181,17 @@
         </div>
       </div>
     </section>
-      <div class="controls">
-        <input type="text" id="log-search" placeholder="Search exercise...">
-        <input type="month" id="log-month">
-      </div>
-      <div id="log-list"></div>
-    </section>
 
-    <section id="tab-bodyweight" class="tab-content">
-      <div class="controls">
-        <select id="bw-range">
-          <option value="all">All Time</option>
-          <option value="year">Past Year</option>
-          <option value="6mo">Past 6 Months</option>
-          <option value="3mo">Past 3 Months</option>
-        </select>
-      </div>
-      <div class="chart-wrap"><p class="chart-title">Bodyweight Over Time</p><canvas id="bw-chart"></canvas></div>
-      <p style="font-size:.75rem;color:#b0a498;margin-top:-.75rem;margin-bottom:1.25rem">* Most values are estimated — bodyweight was only recorded sporadically. The curve was backfilled using known anchor points.</p>
-      <div class="chart-wrap"><p class="chart-title">Strength-to-Bodyweight Ratio</p><canvas id="bw-ratio-chart"></canvas></div>
-    </section>
   </main>
 </div>
 <div class="hm-tooltip" id="hm-tooltip"></div>
-<script src="store.js"></script>
-<script src="parse.js"></script>
-<script src="app.js"></script>
+
+<script src="js/store.js"></script>
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/views.js"></script>
+<script src="js/editor.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>

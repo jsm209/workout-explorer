@@ -1,0 +1,22 @@
+#editor-wrap{max-width:700px}
+.editor-header{margin-bottom:1.25rem;display:flex;flex-direction:column;gap:.6rem}
+#edit-status{font-size:.82rem;color:#6a9e6a;min-height:1.2em}
+.editor-exercise{background:#faf7f2;border:1px solid #d4c9bb;border-radius:8px;padding:.9rem 1rem;margin-bottom:.75rem}
+.editor-exercise-header{display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem}
+.editor-exercise-header input{flex:1;font-weight:600;font-size:.9rem}
+.editor-sets{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.5rem}
+.editor-set-row{display:flex;gap:.5rem;align-items:center}
+.editor-set-row input{width:80px;text-align:center}
+.editor-set-row .set-label{font-size:.75rem;color:#b0a498;width:30px;flex-shrink:0}
+.editor-set-row .btn-icon{background:none;border:none;color:#c0a898;cursor:pointer;font-size:1rem;padding:0 .2rem;line-height:1;flex-shrink:0}
+.editor-set-row .btn-icon:hover{color:#b85c5c}
+.btn-add-set{background:none;border:1px dashed #d4c9bb;color:#a0948a;border-radius:5px;padding:.25rem .75rem;font-size:.8rem;cursor:pointer;width:100%}
+.btn-add-set:hover{border-color:#b0a498;color:#3d3530}
+.btn-remove-ex{background:none;border:none;color:#c0a898;cursor:pointer;font-size:.8rem;margin-left:auto;flex-shrink:0}
+.btn-remove-ex:hover{color:#b85c5c}
+
+@media(max-width:640px){
+  #editor-wrap{max-width:100%}
+  .editor-set-row input{width:70px}
+  .editor-exercise{padding:.75rem}
+}

@@ -2,6 +2,8 @@
 
 A personal workout tracking dashboard built from a Google Sheets CSV export. Visualizes 4+ years of weight training data.
 
+[https://jsm209.github.io/workout-explorer/](https://jsm209.github.io/workout-explorer/)
+
 ## Features
 
 - **Progress** — track any exercise over time by max weight, volume, reps, or sets
